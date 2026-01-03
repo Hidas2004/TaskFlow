@@ -50,6 +50,7 @@ func LoadConfig() *Config {
 
 func getEnv(key, fallback string) string {
 	//os.lookupenv sẽ trả về 2 giá trị (value) va trạng thái true false
+	//if <khởi tạo biến>; <điều kiện> { ... }
 	if value, exists := os.LookupEnv(key); exists {
 		return value //nếu tồn tại thì trả về giá trị
 	}

@@ -1,0 +1,55 @@
+Database -> Repo -> Service -> Handler -> Routes.
+
+////////////////////////////////////////////////////////
+
+1. *gin.RouterGroup (Người tổ chức đường đi)
+Đây là công cụ giúp bạn gom nhóm các đường dẫn (URL) có chung mục đích hoặc chung đặc điểm lại với nhau.
+Tác dụng chính:
+Tổ chức code: Giúp API không bị lộn xộn. Ví dụ: tách riêng API cho Admin và API cho User.
+Gắn Middleware chung: Bạn có thể bắt buộc tất cả các API trong một nhóm phải đi qua một bước kiểm tra (ví dụ: nhóm /admin bắt buộc phải đăng nhập).
+Kế thừa: Bản thân biến r := gin.Default() chính là một RouterGroup lớn nhất (root).
+
+/////////////////////////////////////////////////
+
+2. *gin.Context (Người vận chuyển dữ liệu)
+Đây là phần quan trọng nhất trong một hàm xử lý (Handler). Mỗi khi có một người dùng gửi yêu cầu (Request) đến server, Gin sẽ tạo ra một Context riêng biệt cho yêu cầu đó.
+Tác dụng chính:
+Chứa thông tin Request: Lấy dữ liệu người dùng gửi lên (Header, JSON body, Query params, URL params).
+Gửi trả Response: Trả về kết quả cho người dùng (JSON, HTML, String, File).
+Điều khiển luồng (Flow Control): Dùng để chuyển tiếp sang middleware tiếp theo (Next()) hoặc dừng lại ngay lập tức (Abort()).
+Lưu trữ tạm thời: Truyền dữ liệu giữa các middleware với nhau (ví dụ: Middleware xác thực tìm thấy userID, nó lưu vào Context để hàm xử lý chính lấy ra dùng).
+
+
+////////////////////////////////////////////////
+3. constructor
+Trong Golang (Go) không có constructor theo nghĩa truyền thống như trong Java hay C++.
+👉 Thay vào đó, Go dùng hàm khởi tạo tự định nghĩa (factory function) để tạo và khởi tạo struct.
+1️⃣ Vì sao Go không có constructor?
+Go đơn giản hóa ngôn ngữ
+Không có class → chỉ có struct
+Không có hàm tự động chạy khi tạo object
+2️⃣ Constructor trong Golang là gì?
+👉 Constructor trong Go là một hàm thường, có nhiệm vụ:
+Tạo struct
+Gán giá trị ban đầu
+Trả về struct hoặc con trỏ struct
+
+///////////////////////////////////////////////
+
+4 JWT
+1. Tại sao cần đoạn code này? (Vấn đề)
+Bình thường, khi khách (User) muốn vào chơi tàu lượn, họ phải mua vé.
+Nếu không có JWT: Mỗi lần khách muốn chơi một trò, nhân viên soát vé phải gọi điện về tổng đài (Database) để hỏi: "Alo, ông Hùng này đã mua vé chưa? Mua loại vé VIP hay thường?".
+=> Hậu quả: Tổng đài nghẽn mạng, khách chờ lâu, server chạy chậm.
+2. JWT giải quyết thế nào? (Giải pháp)
+Đoạn code bạn gửi chính là cái máy In Vòng Tay Giấy (loại vòng đeo tay đi sự kiện ấy).
+GenerateToken (Hàm 1): Khi Hùng đăng nhập thành công lần đầu, hệ thống in cho Hùng một cái vòng tay. Trên vòng ghi rõ: "Tên: Hùng, Quyền: Admin, Hết hạn: 5 giờ chiều". Sau đó đóng dấu đỏ (ký tên) của công viên lên đó.
+ValidateToken (Hàm 2): Lần sau Hùng muốn chơi trò chơi, chỉ cần giơ cổ tay ra. Nhân viên nhìn cái vòng, thấy dấu đỏ xịn (không bị tẩy xóa), thấy chưa hết hạn => Cho vào luôn. Không cần gọi tổng đài nữa.
+
+////////////////////////////////////////////////
+5. ctx.ShouldBindJSON(&input)
+hàm này của gin sẽ đọc json từ body của Request
+nó map ánh xạ dữ liệu vào biến input
+nó kiểm tra các tag validate (VD binding"required,email") nếu có trong DTO
+(*) XỬ lý lỗi : nếu JSON sai định dạng hoặc thiếu trường field bắt buộc nó gọi uitils.ErrorResponse
+trả về mã 400 bad request

@@ -1,0 +1,80 @@
+lệnh Gorm:
+
+///////////////////1. Nhóm TẠO (CREATE)///////////////////
+// 1. Tạo 1 dòng dữ liệu
+    tương đương : INSERT INTO user(name,email) VALUES ('hung','a@')
+    db.Create(&user)
+// 2. Tạo nhiều dòng cùng lúc (Batch Insert)
+    db.CreateInbatches(&users,100)
+// Tự động tạo bảng users, tasks... dựa trên struct
+    db.AutoMigrate(&models.User{}, &models.Task{}, &models.Team{})
+
+
+///////////////////2.Nhóm ĐỌC & TÌM KIẾM (READ)///////////////////
+Dùng cho: Đăng nhập, Xem danh sách, Lọc dữ liệu.
+// 1. Lấy 1 bản ghi theo ID (Primary Key)
+    // Tương đương: SELECT * FROM users WHERE id = 10 LIMIT 1
+    db.First(&user,10)
+
+// 2. Lấy 1 bản ghi theo điều kiện (Thường dùng cho Login)
+    // Tương đương: SELECT * FROM users WHERE email = 'a@b.com' LIMIT 1
+    db.Where("email = ?","a@d").First(&user)
+
+// 3. Lấy TẤT CẢ danh sách
+    // Tương đương: SELECT * FROM users
+    db.find(&allusers)
+
+// 4. Lấy danh sách có điều kiện (Filter)
+    // Tương đương: SELECT * FROM tasks WHERE status = 'done'
+    db.Where("status = ?","done").find(&tasks)
+
+
+///////////////////3. Nhóm CẬP NHẬT (UPDATE)///////////////////
+// 1. Lưu tất cả thay đổi (Save)
+// Cách dùng: Query lên -> Sửa dữ liệu -> Gọi Save.
+// Tương đương: UPDATE users SET name='Mới', age=20... WHERE id=1
+    user.Name = "tên mới"
+    db.Save(&users)
+
+// 1. Lưu tất cả thay đổi (Save)
+// Cách dùng: Query lên -> Sửa dữ liệu -> Gọi Save.
+// Tương đương: UPDATE users SET name='Mới', age=20... WHERE id=1
+    db.model(&user).Update("password","new_hash")
+
+// 3. Sửa nhiều cột cụ thể (Updates)
+// Thường dùng cho method PATCH
+db.Model(&user).Updates(models.User{Name: "Tuan", Age: 18})
+
+
+///////////////////4. Nhóm XÓA (DELETE)///////////////////
+// 1. Xóa theo ID
+// Nếu Model có field DeletedAt, GORM sẽ tự động Soft Delete (ẩn đi)
+// Tương đương: UPDATE users SET deleted_at = NOW() WHERE id = 10
+db.Delete(&models.User{}, 10)
+
+// 2. Xóa Vĩnh Viễn (Hard Delete)
+// Dùng cho Admin muốn dọn dẹp rác
+// Tương đương: DELETE FROM users WHERE id = 10
+db.Unscoped().Delete(&models.User{}, 10)
+
+
+///////////////////5. Nhóm NÂNG CAO (QUAN TRỌNG CHO DỰ ÁN)///////////////////
+// 1. Preload (Join bảng)
+// Ví dụ: Lấy Task nhưng muốn lấy luôn thông tin User tạo task đó
+// Tương đương: SELECT * FROM tasks LEFT JOIN users ON ...
+db.Preload("User").Find(&tasks)
+
+// 2. Phân trang (Pagination)
+// Ví dụ: Lấy trang 1, mỗi trang 10 dòng
+db.Limit(10).Offset(0).Find(&users)
+
+// 3. Transaction (Giao dịch)
+// Dùng khi muốn "thành công cùng thành công, thất bại cùng thất bại"
+// Ví dụ: Tạo Team xong phải thêm Leader vào team đó ngay lập tức.
+tx := db.Begin()
+// ... làm các lệnh db.Create ...
+if err != nil {
+    tx.Rollback() // Gặp lỗi thì hủy hết
+} else {
+    tx.Commit()   // Ngon lành thì lưu
+}
