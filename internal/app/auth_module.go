@@ -13,16 +13,18 @@ type AuthModule struct {
 }
 
 func NewAuthModule(ctx *ModuleContext) *AuthModule {
-	//1 khởi tạo repositories
+	// 1. Khởi tạo Repo
 	authRepo := repositories.NewUserRepository(ctx.DB)
-	// 2. Lấy Secret Key từ Config
-	jwtSecret := ctx.Config.JWTSecret
-	// 3. Khởi tạo Service
-	authService := v1services.NewAuthService(authRepo, jwtSecret)
-	// 4. Khởi tạo Handler
+
+	// 2. Khởi tạo Service (QUAN TRỌNG: Truyền ctx.Config vào thay vì jwtSecret)
+	authService := v1services.NewAuthService(authRepo, ctx.Config)
+
+	// 3. Khởi tạo Handler
 	authHandler := v1handler.NewAuthHandler(authService)
-	// 5. Khởi tạo Routes
+
+	// 4. Khởi tạo Routes
 	authRoutes := v1routes.NewAuthRoutes(authHandler)
+
 	return &AuthModule{
 		routes: *authRoutes,
 	}

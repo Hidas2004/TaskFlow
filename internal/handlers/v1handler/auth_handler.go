@@ -24,22 +24,38 @@ func NewAuthHandler(service v1services.AuthService) *AuthHandler {
 
 func (ah *AuthHandler) Login(ctx *gin.Context) {
 	var input dto.LoginRequest
-	//kiem tra dau vào
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		utils.ErrorResponse(ctx, 400, "Dữ liệu không hợp lệ", err.Error())
 		return
 	}
-	//2 goi service de xu ly
-	token, err := ah.service.Login(ctx, input.Email, input.Password)
+
+	// Gọi service với input là struct DTO (QUAN TRỌNG: Đã sửa chỗ này)
+	resp, err := ah.service.Login(&input)
 	if err != nil {
 		utils.ErrorResponse(ctx, 401, "Đăng nhập thất bại", err.Error())
 		return
 	}
-	//3 trả về kết quả thành công
-	utils.SuccessResponse(ctx, 200, "Đăng nhập thành công", gin.H{"token": token})
-	
+
+	utils.SuccessResponse(ctx, 200, "Đăng nhập thành công", resp)
 }
 
 func (ah *AuthHandler) Logout(ctx *gin.Context) {
 
+}
+
+// 1. Xử lý Register
+func (ah *AuthHandler) Register(ctx *gin.Context) {
+	var input dto.RegisterRequest
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		utils.ErrorResponse(ctx, 400, "Dữ liệu không hợp lệ", err.Error())
+		return
+	}
+
+	resp, err := ah.service.Register(&input) // Truyền pointer struct
+	if err != nil {
+		utils.ErrorResponse(ctx, 400, "Đăng ký thất bại", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(ctx, 201, "Đăng ký thành công", resp)
 }

@@ -1,10 +1,10 @@
 package v1services
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/Hidas2004/TaskFlow/internal/dto"
+)
 
 type AuthService interface {
-	// Sửa dòng này: Thêm string vào kết quả trả về
-	Login(ctx *gin.Context, email, password string) (string, error)
-
-	Logout(ctx *gin.Context) error
+	Login(req *dto.LoginRequest) (*dto.AuthResponse, error)
+	Register(req *dto.RegisterRequest) (*dto.AuthResponse, error)
 }

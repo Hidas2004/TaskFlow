@@ -5,6 +5,7 @@ import (
 
 	"github.com/Hidas2004/TaskFlow/internal/app"
 	"github.com/Hidas2004/TaskFlow/internal/config"
+	"github.com/Hidas2004/TaskFlow/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,18 +19,24 @@ func main() {
 		log.Fatalf("❌ Lỗi kết nối: %v", err)
 	}
 
-	// 3. Khởi tạo gin router
+	//3 Tự động tạo bảng (Migration)
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+		log.Fatalf("❌ Lỗi migration: %v", err)
+	}
+	log.Println("✅ tạo bảng thành công!")
+
+	// 4. Khởi tạo gin router
 	router := gin.Default()
 
-	// 4. Khởi tạo Context và Module
+	// 5. Khởi tạo Context và Module
 	moduleCtx := app.NewModuleContext(db, cfg)
 	authModule := app.NewAuthModule(moduleCtx)
 
-	// 5. Đăng ký routes
+	// 6. Đăng ký routes
 	apiGroup := router.Group("/api/v1")
 	authModule.GetRoutes().Register(apiGroup)
 
-	// 6. Chạy server
+	// 7. Chạy server
 	log.Printf("Server running on port %s", cfg.ServerPort)
 	router.Run(":" + cfg.ServerPort)
 }

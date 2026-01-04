@@ -53,3 +53,15 @@ nó map ánh xạ dữ liệu vào biến input
 nó kiểm tra các tag validate (VD binding"required,email") nếu có trong DTO
 (*) XỬ lý lỗi : nếu JSON sai định dạng hoặc thiếu trường field bắt buộc nó gọi uitils.ErrorResponse
 trả về mã 400 bad request
+
+/////////////////////////////////////////////
+
+"Ánh xạ dữ liệu sang Model"
+1. "Là sao?" (Về mặt kỹ thuật)
+DTO (Data Transfer Object - req): Là cái túi chứa dữ liệu mà người dùng gửi lên từ giao diện (Frontend). Nó thường chỉ chứa những thông tin cơ bản như Email, Password, FullName.
+
+Model (models.User): Là cấu trúc đại diện cho một hàng (row) trong bảng dữ liệu của cơ sở dữ liệu (Database). Nó chứa đầy đủ các trường thông tin cần thiết để lưu trữ, bao gồm cả những thông tin mà người dùng không gửi lên (như ID, Role, CreatedAt, v.v.).
+
+Hành động ánh xạ chính là việc bạn lấy các giá trị từ req (DTO) và gán vào các thuộc tính tương ứng của một đối tượng newUser (Model).
+
+Go
