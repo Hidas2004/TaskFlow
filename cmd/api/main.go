@@ -3,9 +3,12 @@ package main
 import (
 	"log"
 
-	"github.com/Hidas2004/TaskFlow/internal/app"
 	"github.com/Hidas2004/TaskFlow/internal/config"
+	"github.com/Hidas2004/TaskFlow/internal/handlers/v1handler"
 	"github.com/Hidas2004/TaskFlow/internal/models"
+	"github.com/Hidas2004/TaskFlow/internal/repositories"
+	"github.com/Hidas2004/TaskFlow/internal/routes/v1routes"
+	"github.com/Hidas2004/TaskFlow/internal/services/v1services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,30 +16,45 @@ func main() {
 	// 1. Load cấu hình
 	cfg := config.LoadConfig()
 
-	// 2. Kết nối db
+	// 2. Kết nối DB
 	db, err := config.ConnectDatabase(cfg)
 	if err != nil {
 		log.Fatalf("❌ Lỗi kết nối: %v", err)
 	}
 
-	//3 Tự động tạo bảng (Migration)
+	// 3. Migration (Tạo bảng tự động)
+	// Phase 5, 6, 7 sẽ thêm các model khác vào đây (Task, Team...)
 	if err := db.AutoMigrate(&models.User{}); err != nil {
 		log.Fatalf("❌ Lỗi migration: %v", err)
 	}
-	log.Println("✅ tạo bảng thành công!")
+	log.Println("✅ Migration thành công!")
 
-	// 4. Khởi tạo gin router
+	// 4. Khởi tạo Gin Router
 	router := gin.Default()
 
-	// 5. Khởi tạo Context và Module
-	moduleCtx := app.NewModuleContext(db, cfg)
-	authModule := app.NewAuthModule(moduleCtx)
+	// Tầng 1: Repository (Giao tiếp DB)
+	userRepo := repositories.NewUserRepository(db)
 
-	// 6. Đăng ký routes
-	apiGroup := router.Group("/api/v1")
-	authModule.GetRoutes().Register(apiGroup)
+	// Tầng 2: Service (Xử lý logic, cần Repo và Config)
+	userService := v1services.NewUserService(userRepo)
+	authService := v1services.NewAuthService(userRepo, cfg)
+
+	// Tầng 3: Handler (Xử lý HTTP, cần Service)
+	authHandler := v1handler.NewAuthHandler(authService)
+
+	usersHandler := v1handler.NewUsersHandler(userService)
+
+	// ==========================================
+	// 6. SETUP ROUTES (Cấu hình đường dẫn)
+	// ==========================================
+
+	// Gọi hàm "Tổng quản" SetupRoutes từ package v1routes
+	// Hàm này sẽ tự chia route Public và Protected (có Middleware)
+	v1routes.SetupRoutes(router, cfg, authHandler, usersHandler)
 
 	// 7. Chạy server
-	log.Printf("Server running on port %s", cfg.ServerPort)
-	router.Run(":" + cfg.ServerPort)
+	log.Printf("🚀 Server đang chạy tại cổng: %s", cfg.ServerPort)
+	if err := router.Run(":" + cfg.ServerPort); err != nil {
+		log.Fatalf("❌ Không thể khởi động server: %v", err)
+	}
 }

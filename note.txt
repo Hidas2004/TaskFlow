@@ -65,3 +65,22 @@ Model (models.User): Là cấu trúc đại diện cho một hàng (row) trong b
 Hành động ánh xạ chính là việc bạn lấy các giá trị từ req (DTO) và gán vào các thuộc tính tương ứng của một đối tượng newUser (Model).
 
 Go
+
+///////////////////////////////////////////////
+jwt.io. là gì
+jwt.io là một trang web công cụ cực kỳ phổ biến (được phát triển bởi Auth0) dành cho các lập trình viên Backend và Mobile.
+
+Nói một cách đơn giản: Nó là cái "kính lúp" giúp bạn nhìn thấu bên trong cái chuỗi ký tự loằng ngoằng (Token) mà server Go của bạn vừa trả về.
+
+Tại sao bạn cần nó lúc này?
+Khi API Login của bạn chạy thành công, nó trả về một chuỗi Token trông giống như thế này: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (dài dằng dặc).
+
+Bạn không thể đọc hiểu chuỗi này bằng mắt thường. Bạn cần jwt.io để kiểm tra xem code của bạn đã "gói" đúng thông tin vào Token chưa.
+
+//////////////////////////////////////////
+
+hasprefix là kiểm tra chuổi có bắt đầu bằng 1 chuỗi khác kos
+VD "bearer abx.cy" có bắt đầu bằng bearer kos
+
+HasSuffix kiểm tra chuỗi có kết thúc bằng 1 chuỗi khác không
+VD "image.png"  có kết thúc bằng .png ko

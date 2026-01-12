@@ -1,11 +1,13 @@
 package utils
 
 import (
+	"errors"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5" // Đảm bảo bạn đang dùng v5
+	"github.com/golang-jwt/jwt/v5"
 )
 
+// 1. Định nghĩa "Ruột" của Token (Payload)
 // Struct này định nghĩa những thông tin bạn muốn nhét vào trong Token
 type Claims struct {
 	UserID               string `json:"user_id"`
@@ -14,7 +16,7 @@ type Claims struct {
 	jwt.RegisteredClaims        // Các trường chuẩn của JWT như ngày hết hạn (exp), ngày tạo (iat)
 }
 
-// Hàm 1: Tạo Token (Cấp vé)
+// 2. Hàm Tạo Token (Generate)
 func GenerateToken(userID, email, role, secret string, expireHours int) (string, error) {
 	// 1. Tạo nội dung cho tấm vé (Claims)
 	claims := Claims{
@@ -36,17 +38,24 @@ func GenerateToken(userID, email, role, secret string, expireHours int) (string,
 	return token.SignedString([]byte(secret))
 }
 
-// Hàm 2: Kiểm tra Token (Soát vé)
+// 3. Hàm Kiểm tra Token (Validate) - Middleware sẽ gọi hàm này
 func ValidateToken(tokenString, secret string) (*Claims, error) {
-	// Parse token từ chuỗi string
+	// Parse: Dịch chuỗi token mã hóa ngược lại thành struct Claims
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		// Dòng này để đảm bảo hacker không đổi thuật toán ký thành "none" để lừa hệ thống
+		// Bảo mật: Kiểm tra xem thuật toán ký có đúng là HMAC không (tránh lỗ hổng "none" algorithm)
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
 		return []byte(secret), nil
 	})
-
-	// Nếu parse thành công và token hợp lệ
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
+	// Xử lý kết quả
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	// Kiểm tra xem token có hợp lệ không (ví dụ: chưa hết hạn)
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil // Trả về thông tin user (UserID, Role...)
+	}
+
+	return nil, errors.New("invalid token")
 }

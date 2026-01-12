@@ -64,8 +64,9 @@ func (as *authService) Logout(ctx *gin.Context) error {
 func (as *authService) Register(req *dto.RegisterRequest) (*dto.AuthResponse, error) {
 	//buoc1 check email tồn tại
 	//gọi repo tìm email
-	existingUser, err := as.userRepo.FindByEmail(req.Email)
-	if err == nil && existingUser != nil {
+	_, err := as.userRepo.FindByEmail(req.Email)
+	if err == nil {
+		// Nếu KHÔNG có lỗi => Tức là tìm thấy user => Báo lỗi trùng email
 		return nil, errors.New("email đã tồn tại")
 	}
 	//bước 2 mã hóa mk

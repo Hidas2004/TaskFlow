@@ -1,0 +1,52 @@
+THÀNH CÔNG (Success)
+
+200     http.StatusOk           trả về khi lấy dữ liệu get cập nhât put thành công
+201     http.StatusCreated      trả về khi tạo 1 cái gì đó thành công
+                                (ví dụ: POST đăng ký user, tạo task).
+
+204     http.StatusNoContent    thường dùng khi xóa delete thành công
+
+////////////////////////////////////////////
+
+LỖI DO KHÁCH (Client Error)
+400     http.StatusBadRequest   dữ liệu gửi lên bị sai format thiếu trường bắt buộc
+                                (ví dụ: đăng ký mà thiếu password, email không đúng dạng).
+
+401     http.StatusUnauthorized chưa đăng nhập hoặc token hết hạn bị sai
+
+403     http.StatusForbidden    đã đăng nhập rồi nhưng ko đủ quyền 
+                                (VD tk nhân viên đòi xóa tk admin)
+
+404     http.StatusNotFound     Gọi sai đường dẫn API, hoặc tìm ID không tồn tại
+
+409     http.StatusConflict     Dữ liệu bị xung đột. Điển hình nhất: Đăng ký email đã tồn tại.
+
+
+////////////////////////////////////////////
+
+LỖI DO SERVER (Server Error)
+500     http.StatusInternalServerError  lỗi ko lường trước được ,code bị panic ,databse mất kết nối,Nói chung là lỗi bug ở Backend.
+
+502     http.StatusBadGateway           Thường gặp khi triển khai thực tế (Nginx không gọi được vào Go app của bạn). Lúc dev ít gặp
+
+503     http.StatusServiceUnavailable   Server đang quá tải hoặc đang tắt để bảo trì.
+
+
+gợi ý 
+// 1. Thành công (200)
+c.JSON(http.StatusOK, gin.H{"data": user})
+
+// 2. Tạo mới thành công (201)
+c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+
+// 3. Lỗi do người dùng gửi thiếu field (400)
+c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+
+// 4. Lỗi chưa đăng nhập (401)
+c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Please login first"})
+
+// 5. Lỗi không tìm thấy (404)
+c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+
+// 6. Lỗi Database sập (500)
+c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
