@@ -216,3 +216,22 @@ func (ts *teamService) GetMyTeams(userID uuid.UUID) ([]*dto.TeamResponse, error)
 	}
 	return responses, nil
 }
+
+func (ts *teamService) GetMembers(teamID uuid.UUID) ([]*dto.MemberResponse, error) {
+	users, err := ts.teamRepo.GetTeamMembers(teamID)
+	if err != nil {
+		return nil, err
+	}
+	//Chuyển đổi (Mapping) từ Model sang Response
+	//nghĩa là lấy dữ liệu từ DB(model) -> biến thành dữ liệu gọn gàg trả về cho API(response)
+	var result []*dto.MemberResponse
+	for _, user := range users {
+		result = append(result, &dto.MemberResponse{
+			ID:       user.ID,
+			FullName: user.FullName,
+			Email:    user.Email,
+			Role:     "member", // Tạm thời để cứng, muốn chuẩn phải join bảng team_members để lấy role
+		})
+	}
+	return result, nil
+}

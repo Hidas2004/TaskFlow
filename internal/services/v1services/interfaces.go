@@ -27,4 +27,5 @@ type TeamService interface {
 	AddMember(req *dto.AddMemberRequest, teamID, requestUserID uuid.UUID) error
 	RemoveMember(teamID, targetUserID, requestUserID uuid.UUID) error
 	GetMyTeams(userID uuid.UUID) ([]*dto.TeamResponse, error)
+	GetMembers(teamID uuid.UUID) ([]*dto.MemberResponse, error)
 }

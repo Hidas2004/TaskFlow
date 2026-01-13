@@ -36,3 +36,10 @@ type TeamResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type MemberResponse struct {
+	ID       uuid.UUID `json:"id"`
+	FullName string    `json:"full_name"`
+	Role     string    `json:"role"`
+	Email    string    `json:"email"`
+}
