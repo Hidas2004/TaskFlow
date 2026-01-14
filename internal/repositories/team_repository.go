@@ -74,3 +74,11 @@ func (tr *teamRepository) GetUserTeams(userID uuid.UUID) ([]*models.Team, error)
 		Find(&teams).Error
 	return teams, err
 }
+
+func (tr *teamRepository) CheckIsMember(teamID, userID uuid.UUID) (bool, error) {
+	var count int64 //khai báo biến để chưa kết quả đếm được
+	err := tr.db.Model(&models.TeamMember{}).
+		Where("team_id = ? AND user_id = ?", teamID, userID). //điều kiện lọc
+		Count(&count).Error
+	return count > 0, err
+}

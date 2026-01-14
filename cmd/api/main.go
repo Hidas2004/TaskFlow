@@ -24,7 +24,12 @@ func main() {
 
 	// 3. Migration (Tạo bảng tự động)
 	// Phase 5, 6, 7 sẽ thêm các model khác vào đây (Task, Team...)
-	if err := db.AutoMigrate(&models.User{}); err != nil {
+	if err := db.AutoMigrate(
+		&models.User{},
+		&models.Team{},
+		&models.TeamMember{},
+		&models.Task{},
+	); err != nil {
 		log.Fatalf("❌ Lỗi migration: %v", err)
 	}
 	log.Println("✅ Migration thành công!")
@@ -34,14 +39,16 @@ func main() {
 
 	// Tầng 1: Repository (Giao tiếp DB)
 	userRepo := repositories.NewUserRepository(db)
+	teamRepo := repositories.NewTeamRepository(db)
 
 	// Tầng 2: Service (Xử lý logic, cần Repo và Config)
 	userService := v1services.NewUserService(userRepo)
 	authService := v1services.NewAuthService(userRepo, cfg)
+	teamService := v1services.NewTeamService(teamRepo, userRepo)
 
 	// Tầng 3: Handler (Xử lý HTTP, cần Service)
 	authHandler := v1handler.NewAuthHandler(authService)
-
+	teamHandler := v1handler.NewTeamHandler(teamService)
 	usersHandler := v1handler.NewUsersHandler(userService)
 
 	// ==========================================
@@ -51,7 +58,7 @@ func main() {
 	// Gọi hàm "Tổng quản" SetupRoutes từ package v1routes
 	// Hàm này sẽ tự chia route Public và Protected (có Middleware)
 	v1routes.SetupRoutes(router, cfg, authHandler, usersHandler)
-
+	v1routes.RegisterTeamRoutes(router, cfg, teamHandler)
 	// 7. Chạy server
 	log.Printf("🚀 Server đang chạy tại cổng: %s", cfg.ServerPort)
 	if err := router.Run(":" + cfg.ServerPort); err != nil {

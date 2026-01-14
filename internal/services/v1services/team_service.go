@@ -182,8 +182,7 @@ func (ts *teamService) DeleteTeam(teamID uuid.UUID, userID uuid.UUID) error {
 	return ts.teamRepo.Delete(teamID)
 }
 
-func (ts *teamService) AddMember(req *dto.AddMemberRequest, teamID, requestUserID uuid.UUID) error {
-	//kiem tra su ton tại cau nhom
+func (ts *teamService) AddMember(req *dto.AddMemberRequest, teamID, requestUserID uuid.UUID) error { //kiem tra su ton tại cau nhom
 	team, err := ts.teamRepo.FindByID(teamID)
 	if err != nil {
 		return ErrTeamNotFound
@@ -196,6 +195,11 @@ func (ts *teamService) AddMember(req *dto.AddMemberRequest, teamID, requestUserI
 		return errors.New("user id không hợp lệ")
 	}
 	//kiem tra su ton tai cua thanh vien moi
+	exists, _ := ts.teamRepo.CheckIsMember(teamID, targetUserID)
+	if exists {
+		return errors.New("người dùng này đã là thành viên của nhóm rồi")
+	}
+	// 3. Kiểm tra user có tồn tại trong hệ thống không
 	_, err = ts.userRepo.FindByID(targetUserID)
 	if err != nil {
 		return ErrUserNotFound
@@ -218,20 +222,22 @@ func (ts *teamService) GetMyTeams(userID uuid.UUID) ([]*dto.TeamResponse, error)
 }
 
 func (ts *teamService) GetMembers(teamID uuid.UUID) ([]*dto.MemberResponse, error) {
-	users, err := ts.teamRepo.GetTeamMembers(teamID)
+	team, err := ts.teamRepo.FindByID(teamID)
 	if err != nil {
 		return nil, err
 	}
 	//Chuyển đổi (Mapping) từ Model sang Response
 	//nghĩa là lấy dữ liệu từ DB(model) -> biến thành dữ liệu gọn gàg trả về cho API(response)
 	var result []*dto.MemberResponse
-	for _, user := range users {
-		result = append(result, &dto.MemberResponse{
-			ID:       user.ID,
-			FullName: user.FullName,
-			Email:    user.Email,
-			Role:     "member", // Tạm thời để cứng, muốn chuẩn phải join bảng team_members để lấy role
-		})
+	for _, m := range team.Members {
+		if m.User.ID != uuid.Nil {
+			result = append(result, &dto.MemberResponse{
+				ID:       m.User.ID,
+				FullName: m.User.FullName,
+				Email:    m.User.Email,
+				Role:     m.Role, // Lấy đúng Role từ bảng team_members (Leader/Member)
+			})
+		}
 	}
 	return result, nil
 }

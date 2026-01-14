@@ -25,4 +25,16 @@ type TeamRepository interface {
 	RemoveMember(teamID, userID uuid.UUID) error
 	GetTeamMembers(teamID uuid.UUID) ([]*models.User, error)
 	GetUserTeams(userID uuid.UUID) ([]*models.Team, error)
+	CheckIsMember(teamID, userID uuid.UUID) (bool, error)
+}
+
+type TaskRepository interface {
+	Create(task *models.Task) error
+
+	// Hàm này cân tất cả: Lọc theo Team, Status, Assignee, Search từ khóa, Phân trang
+	FindAll(filters map[string]interface{}, page, limit int) ([]*models.Task, int64, error)
+
+	FindByID(id uuid.UUID) (*models.Task, error)
+	Update(task *models.Task) error
+	Delete(id uuid.UUID) error
 }
