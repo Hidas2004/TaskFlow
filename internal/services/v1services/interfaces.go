@@ -1,6 +1,8 @@
 package v1services
 
 import (
+	"context"
+
 	"github.com/Hidas2004/TaskFlow/internal/dto"
 	"github.com/Hidas2004/TaskFlow/internal/models"
 	"github.com/google/uuid"
@@ -28,4 +30,17 @@ type TeamService interface {
 	RemoveMember(teamID, targetUserID, requestUserID uuid.UUID) error
 	GetMyTeams(userID uuid.UUID) ([]*dto.TeamResponse, error)
 	GetMembers(teamID uuid.UUID) ([]*dto.MemberResponse, error)
+}
+
+type TaskService interface {
+	CreateTask(ctx context.Context, req dto.CreateTaskRequest, creatorID uuid.UUID) (*dto.TaskResponse, error)
+
+	GetTasks(ctx context.Context, req dto.TaskFilterRequest, userID uuid.UUID, userRole string) ([]dto.TaskResponse, int64, error)
+
+	GetTaskByID(ctx context.Context, taskID uuid.UUID, userID uuid.UUID, userRole string) (*dto.TaskResponse, error)
+	UpdateTask(ctx context.Context, taskID uuid.UUID, req dto.UpdateTaskRequest, userID uuid.UUID, userRole string) (*dto.TaskResponse, error)
+
+	UpdateTaskStatus(ctx context.Context, taskID uuid.UUID, newStatus string, userID uuid.UUID, userRole string) error
+
+	DeleteTask(ctx context.Context, taskID uuid.UUID, userID uuid.UUID, userRole string) error
 }

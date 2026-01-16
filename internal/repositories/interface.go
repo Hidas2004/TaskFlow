@@ -38,3 +38,14 @@ type TaskRepository interface {
 	Update(task *models.Task) error
 	Delete(id uuid.UUID) error
 }
+
+type CommentRepository interface {
+	Create(comment *models.Comment) error
+
+	// Lấy comment theo Task, nhưng phải kèm thông tin User
+	FindByTaskID(taskID uuid.UUID) ([]*models.Comment, error)
+
+	FindByID(id uuid.UUID) (*models.Comment, error)
+	Update(comment *models.Comment) error
+	Delete(id uuid.UUID) error
+}
