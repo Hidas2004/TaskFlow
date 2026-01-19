@@ -180,8 +180,7 @@ func (ts *taskService) GetTasks(ctx context.Context, req dto.TaskFilterRequest, 
 		filters["search"] = req.Search
 	}
 
-	// ---------------------------------------------------------
-	// 👇👇👇 BỔ SUNG ĐOẠN NÀY VÀO ĐÂY 👇👇👇
+
 	if req.Priority != "" {
 		filters["priority"] = req.Priority
 	}

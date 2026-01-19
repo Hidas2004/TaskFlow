@@ -44,3 +44,10 @@ type TaskService interface {
 
 	DeleteTask(ctx context.Context, taskID uuid.UUID, userID uuid.UUID, userRole string) error
 }
+
+type CommentService interface {
+	CreateComment(userID uuid.UUID, taskID uuid.UUID, req *dto.CreateCommentRequest) (*dto.CommentResponse, error)
+	GetCommentsByTask(userID uuid.UUID, taskID uuid.UUID) ([]*dto.CommentResponse, error)
+	UpdateComment(userID uuid.UUID, commentID uuid.UUID, req *dto.UpdateCommentRequest) (*dto.CommentResponse, error)
+	DeleteComment(userID uuid.UUID, commentID uuid.UUID) error
+}
