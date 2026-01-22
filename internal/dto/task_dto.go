@@ -3,6 +3,7 @@ package dto
 import (
 	"time"
 
+	"github.com/Hidas2004/TaskFlow/internal/utils"
 	"github.com/google/uuid"
 )
 
@@ -29,6 +30,7 @@ type UpdateTaskRequest struct {
 }
 
 type TaskFilterRequest struct {
+	utils.PaginationQuery
 	TeamID     string `form:"team_id" binding:"omitempty,uuid"`
 	Status     string `form:"status"`
 	Priority   string `form:"priority"`
@@ -70,4 +72,13 @@ type TaskResponse struct {
 	DueDate   *time.Time `json:"due_date"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
+}
+
+type TaskCountResponse struct {
+	Status string `json:"status"`
+	Count  int64  `json:"count"`
+}
+
+type DashboardFilterRequest struct {
+	TeamID string `form:"team_id" binding:"required,uuid"`
 }

@@ -5,13 +5,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterTaskRoutes(router *gin.RouterGroup, taskHandler *v1handler.TaskHandler, authMiddleware gin.HandlerFunc) {
+func RegisterTaskRoutes(router *gin.RouterGroup, taskHandler *v1handler.TaskHandler) {
 	tasks := router.Group("/tasks")
-	tasks.Use(authMiddleware) // Bắt buộc đăng nhập
 	{
+		tasks.GET("/dashboard/stats", taskHandler.GetDashboardStats)
+
 		tasks.POST("", taskHandler.CreateTask)
-		tasks.GET("", taskHandler.GetTasks)        // Đã gộp Search, Filter, GetMyTasks
-		tasks.GET("/:id", taskHandler.GetTaskByID) // Bạn tự code hàm này nhé, tương tự UpdateTask
+		tasks.GET("", taskHandler.GetTasks) // Đã gộp Search, Filter, Pagination
+
+		tasks.GET("/:id", taskHandler.GetTaskByID)
+
 		tasks.PUT("/:id", taskHandler.UpdateTask)
 		tasks.PATCH("/:id/status", taskHandler.UpdateStatus)
 		tasks.DELETE("/:id", taskHandler.DeleteTask)

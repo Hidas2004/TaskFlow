@@ -5,40 +5,44 @@ import (
 
 	"github.com/Hidas2004/TaskFlow/internal/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func AuthMiddleware(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//BƯỚC 1: LẤY TOKEN
-		//token thường được gửi trong header tên là Authorization
-		//c.getheader là Lấy giá trị của một HTTP header theo tên
+		// BƯỚC 1: LẤY TOKEN (Giữ nguyên)
 		authHeader := c.GetHeader("Authorization")
-		//kiểm tra 1 header có tông tại ko
-		//kiểm tra 2 có bắt đầu bằng chữ bearer ko
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			utils.ErrorResponse(c, 401, "Unauthorized", "Token không tồn tại hoặc sai định dạng")
 			c.Abort()
 			return
 		}
-		// Cắt bỏ chữ "Bearer " (7 ký tự đầu) để lấy chuỗi token sạch
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		// --- BƯỚC 2: VALIDATE TOKEN ---
+
+		// BƯỚC 2: VALIDATE TOKEN (Giữ nguyên)
 		claims, err := utils.ValidateToken(tokenString, secret)
 		if err != nil {
 			utils.ErrorResponse(c, 401, "Unauthorized", err.Error())
 			c.Abort()
 			return
 		}
-		// --- BƯỚC 3: LƯU THÔNG TIN (CONTEXT) ---
-		// Middleware sau khi kiểm tra vé xong, phải "ghim" thông tin người dùng vào Context.
-		// Để lát nữa, các hàm xử lý (Handler) biết được "Ai là người đang gửi request này?".\
-		c.Set("userID", claims.UserID)
+
+		// --- [SỬA ĐOẠN NÀY] ---
+		// BƯỚC 3: Ép kiểu UserID từ String sang UUID ngay tại đây
+		userID, err := uuid.Parse(claims.UserID)
+		if err != nil {
+			utils.ErrorResponse(c, 401, "Unauthorized", "UserID trong token không hợp lệ")
+			c.Abort()
+			return
+		}
+
+		// Lưu UUID chuẩn vào context (Thay vì lưu string như trước)
+		c.Set("userID", userID)
 		c.Set("role", claims.Role)
 		c.Set("email", claims.Email)
+
 		c.Next()
-
 	}
-
 }
 
 // allowedRoles ...string dấu ... nghĩa là bạn có thể truyền 1 hoặc nhiều role tùy

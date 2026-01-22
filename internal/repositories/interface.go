@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/Hidas2004/TaskFlow/internal/dto"
 	"github.com/Hidas2004/TaskFlow/internal/models"
 	"github.com/google/uuid"
 )
@@ -33,10 +34,10 @@ type TaskRepository interface {
 
 	// Hàm này cân tất cả: Lọc theo Team, Status, Assignee, Search từ khóa, Phân trang
 	FindAll(filters map[string]interface{}, page, limit int) ([]*models.Task, int64, error)
-
 	FindByID(id uuid.UUID) (*models.Task, error)
 	Update(task *models.Task) error
 	Delete(id uuid.UUID) error
+	CountTasksByStatus(teamID uuid.UUID) ([]*dto.TaskCountResponse, error)
 }
 
 type CommentRepository interface {
@@ -47,5 +48,12 @@ type CommentRepository interface {
 
 	FindByID(id uuid.UUID) (*models.Comment, error)
 	Update(comment *models.Comment) error
+	Delete(id uuid.UUID) error
+}
+
+type AttachmentRepository interface {
+	Create(attachment *models.Attachment) error
+	FindByTaskID(taskID uuid.UUID) ([]*models.Attachment, error)
+	FindByID(id uuid.UUID) (*models.Attachment, error)
 	Delete(id uuid.UUID) error
 }

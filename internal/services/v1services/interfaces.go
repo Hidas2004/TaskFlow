@@ -2,6 +2,7 @@ package v1services
 
 import (
 	"context"
+	"mime/multipart"
 
 	"github.com/Hidas2004/TaskFlow/internal/dto"
 	"github.com/Hidas2004/TaskFlow/internal/models"
@@ -43,6 +44,7 @@ type TaskService interface {
 	UpdateTaskStatus(ctx context.Context, taskID uuid.UUID, newStatus string, userID uuid.UUID, userRole string) error
 
 	DeleteTask(ctx context.Context, taskID uuid.UUID, userID uuid.UUID, userRole string) error
+	GetTaskCounts(ctx context.Context, teamIDStr string, userID uuid.UUID) ([]*dto.TaskCountResponse, error)
 }
 
 type CommentService interface {
@@ -50,4 +52,10 @@ type CommentService interface {
 	GetCommentsByTask(userID uuid.UUID, taskID uuid.UUID) ([]*dto.CommentResponse, error)
 	UpdateComment(userID uuid.UUID, commentID uuid.UUID, req *dto.UpdateCommentRequest) (*dto.CommentResponse, error)
 	DeleteComment(userID uuid.UUID, commentID uuid.UUID) error
+}
+
+type AttachmentService interface {
+	UploadAttachment(taskID uuid.UUID, userID uuid.UUID, file *multipart.FileHeader) (*models.Attachment, error)
+	GetAttachmentsByTaskID(taskID uuid.UUID) ([]*models.Attachment, error)
+	DeleteAttachment(attachmentID uuid.UUID, userID uuid.UUID) error
 }

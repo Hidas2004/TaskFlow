@@ -19,7 +19,7 @@ func NewCommentHandler(service v1services.CommentService) *CommentHandler {
 
 // @Route POST /api/v1/tasks/:taskId/comments
 func (ch *CommentHandler) CreateComment(c *gin.Context) {
-	taskIDStr := c.Param("taskId")
+	taskIDStr := c.Param("id")
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Task ID không hợp lệ"})
@@ -46,7 +46,7 @@ func (ch *CommentHandler) CreateComment(c *gin.Context) {
 
 // @Route GET /api/v1/tasks/:taskId/comments
 func (ch *CommentHandler) GetComments(c *gin.Context) {
-	taskIDStr := c.Param("taskId")
+	taskIDStr := c.Param("id")
 
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {

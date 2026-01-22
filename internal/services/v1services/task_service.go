@@ -180,7 +180,6 @@ func (ts *taskService) GetTasks(ctx context.Context, req dto.TaskFilterRequest, 
 		filters["search"] = req.Search
 	}
 
-
 	if req.Priority != "" {
 		filters["priority"] = req.Priority
 	}
@@ -347,4 +346,23 @@ func (ts *taskService) DeleteTask(ctx context.Context, taskID uuid.UUID, userID 
 	// 3. Gọi Repo xóa (Soft delete nhờ GORM DeletedAt)
 	return ts.taskRepo.Delete(taskID)
 
+}
+
+func (ts *taskService) GetTaskCounts(ctx context.Context, teamIDStr string, userID uuid.UUID) ([]*dto.TaskCountResponse, error) {
+	teamID, err := uuid.Parse(teamIDStr)
+	if err != nil {
+		return nil, errors.New("invalid team_id format")
+	}
+	isMember, err := ts.teamRepo.CheckIsMember(teamID, userID)
+	if err != nil {
+		return nil, err // Lỗi DB
+	}
+	if !isMember {
+		return nil, errors.New("permission denied: you are not a member of this team")
+	}
+	counts, err := ts.taskRepo.CountTasksByStatus(teamID)
+	if err != nil {
+		return nil, err
+	}
+	return counts, nil
 }

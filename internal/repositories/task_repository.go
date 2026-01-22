@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/Hidas2004/TaskFlow/internal/dto"
 	"github.com/Hidas2004/TaskFlow/internal/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -20,21 +21,10 @@ func (r *taskRepository) FindAll(filters map[string]interface{}, page, limit int
 	var tasks []*models.Task
 	var total int64
 
-	// --- FIX 1: Xử lý mặc định phân trang (Tránh lỗi offset âm) ---
-	if page <= 0 {
-		page = 1
-	}
-	if limit <= 0 {
-		limit = 10
-	}
-	if limit > 100 {
-		limit = 100 // Chặn không cho lấy quá nhiều làm sập server
-	}
-
 	// 1. Khởi tạo query
 	query := r.db.Model(&models.Task{})
 
-	// 2. Filters
+	// 2. Filters (Lọc dữ liệu)
 	if teamID, ok := filters["team_id"]; ok && teamID != "" {
 		query = query.Where("team_id = ?", teamID)
 	}
@@ -48,25 +38,30 @@ func (r *taskRepository) FindAll(filters map[string]interface{}, page, limit int
 		query = query.Where("assigned_to = ?", assignedTo)
 	}
 
-	// Tìm kiếm từ khóa (Title hoặc Description)
 	if keyword, ok := filters["search"]; ok && keyword != "" {
 		searchTerm := "%" + keyword.(string) + "%"
 		query = query.Where("title ILIKE ? OR description ILIKE ?", searchTerm, searchTerm)
 	}
 
-	// 3. Đếm tổng số lượng (Count trước khi Limit/Offset)
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	// 4. Preload & Phân trang
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 10
+	}
 	offset := (page - 1) * limit
 
-	// Sắp xếp: Ưu tiên Position (cho kéo thả) trước, sau đó đến ngày tạo
-	err := query.Preload("Assignee").Preload("Creator").Preload("Team").
-		Limit(limit).
+	// Sắp xếp: Ưu tiên Position (cho kéo thả) trước, sau đó đến ngày tạo mới nhất
+	err := query.Limit(limit).
 		Offset(offset).
-		Order("position ASC, created_at DESC"). // Update: Sắp xếp theo Position chuẩn Kanban
+		Order("position ASC, created_at DESC").
+		Preload("Team").
+		Preload("Assignee").
+		Preload("Creator").
 		Find(&tasks).Error
 
 	return tasks, total, err
@@ -93,4 +88,17 @@ func (r *taskRepository) Update(task *models.Task) error {
 // Xóa
 func (r *taskRepository) Delete(id uuid.UUID) error {
 	return r.db.Delete(&models.Task{}, "id = ?", id).Error
+}
+
+func (r *taskRepository) CountTasksByStatus(teamID uuid.UUID) ([]*dto.TaskCountResponse, error) {
+	var results []*dto.TaskCountResponse
+
+	// Tư duy SQL: SELECT status, count(*) as count FROM tasks WHERE team_id = ? GROUP BY status
+	err := r.db.Model(&models.Task{}).
+		Select("status, count(*) as count").
+		Where("team_id = ?", teamID). // QUAN TRỌNG: Chỉ đếm task của team này
+		Group("status").
+		Scan(&results).Error
+
+	return results, err
 }

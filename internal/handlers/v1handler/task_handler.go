@@ -6,6 +6,7 @@ import (
 
 	"github.com/Hidas2004/TaskFlow/internal/dto"
 	"github.com/Hidas2004/TaskFlow/internal/services/v1services"
+	"github.com/Hidas2004/TaskFlow/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -101,15 +102,8 @@ func (th *TaskHandler) GetTasks(c *gin.Context) {
 		return
 	}
 
-	//trả về kèm phân trang
-	c.JSON(http.StatusOK, gin.H{
-		"data": tasks,
-		"meta": gin.H{
-			"total": total,
-			"page":  req.Page,
-			"limit": req.Limit,
-		},
-	})
+	response := utils.NewPaginationResponse(tasks, req.Page, req.Limit, total)
+	c.JSON(http.StatusOK, response)
 }
 
 // PUT /api/tasks/:id
