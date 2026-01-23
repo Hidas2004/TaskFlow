@@ -11,6 +11,7 @@ type CreateTaskRequest struct {
 	Title       string     `json:"title" binding:"required"`
 	Description string     `json:"description"`
 	Priority    string     `json:"priority" binding:"omitempty,oneof=low medium high urgent"`
+	Status      string     `json:"status" binding:"omitempty,task_status"`
 	TeamID      string     `json:"team_id" binding:"required,uuid"`
 	AssignedTo  *string    `json:"assigned_to" binding:"omitempty,uuid"`
 	DueDate     *time.Time `json:"due_date"`
@@ -20,7 +21,7 @@ type UpdateTaskRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Priority    string `json:"priority" binding:"omitempty,oneof=low medium high urgent"`
-	Status      string `json:"status" binding:"omitempty,oneof=todo in_progress done"`
+	Status      string `json:"status" binding:"omitempty,task_status"`
 
 	AssignedTo *uuid.UUID `json:"assigned_to"` // Update người làm
 	DueDate    *time.Time `json:"due_date"`

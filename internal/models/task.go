@@ -7,6 +7,20 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	TaskStatusTodo       = "todo"        //Cần làm / Chưa bắt đầu.
+	TaskStatusInProgress = "in_progress" //Đang thực hiện / Đang làm.
+	TaskStatusDone       = "done"
+)
+
+// Định nghĩa luôn cho Priority để sau này dùng
+const ( //(Độ ưu tiên)
+	TaskPriorityLow    = "low"
+	TaskPriorityMedium = "medium"
+	TaskPriorityHigh   = "high"
+	TaskPriorityUrgent = "urgent"
+)
+
 type Task struct {
 	ID          uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
 	Title       string    `gorm:"type:varchar(255);not null" json:"title"`
@@ -50,10 +64,10 @@ func (t *Task) BeforeCreate(tx *gorm.DB) (err error) {
 		t.ID = uuid.New()
 	}
 	if t.Status == "" {
-		t.Status = "todo"
+		t.Status = TaskStatusTodo // Dùng hằng số
 	}
 	if t.Priority == "" {
-		t.Priority = "medium"
+		t.Priority = TaskPriorityMedium // Dùng hằng số
 	}
 	return
 }

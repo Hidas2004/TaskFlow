@@ -1,10 +1,8 @@
-// Logic xử lý (Handler)
-// AuthHandler (File 1): Là đầu bếp. Họ biết cách nấu món ăn
-// (xử lý Login, Logout) nhưng không tiếp xúc trực tiếp
-// với khách ở cửa
 package v1handler
 
 import (
+	"net/http"
+
 	"github.com/Hidas2004/TaskFlow/internal/dto"
 	"github.com/Hidas2004/TaskFlow/internal/services/v1services"
 	"github.com/Hidas2004/TaskFlow/internal/utils"
@@ -15,47 +13,44 @@ type AuthHandler struct {
 	service v1services.AuthService
 }
 
-// Constructor nhận vào Interface
 func NewAuthHandler(service v1services.AuthService) *AuthHandler {
-	return &AuthHandler{
-		service: service,
-	}
+	return &AuthHandler{service: service}
 }
 
-func (ah *AuthHandler) Login(ctx *gin.Context) {
+func (ah *AuthHandler) Login(c *gin.Context) {
 	var input dto.LoginRequest
-	if err := ctx.ShouldBindJSON(&input); err != nil {
-		utils.ErrorResponse(ctx, 400, "Dữ liệu không hợp lệ", err.Error())
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid input data", err)
 		return
 	}
 
-	// Gọi service với input là struct DTO (QUAN TRỌNG: Đã sửa chỗ này)
 	resp, err := ah.service.Login(&input)
 	if err != nil {
-		utils.ErrorResponse(ctx, 401, "Đăng nhập thất bại", err.Error())
+
+		utils.HandleServiceError(c, err)
 		return
 	}
 
-	utils.SuccessResponse(ctx, 200, "Đăng nhập thành công", resp)
+	utils.SuccessResponse(c, http.StatusOK, "Login successful", resp)
 }
 
-func (ah *AuthHandler) Logout(ctx *gin.Context) {
-
-}
-
-// 1. Xử lý Register
-func (ah *AuthHandler) Register(ctx *gin.Context) {
+func (ah *AuthHandler) Register(c *gin.Context) {
 	var input dto.RegisterRequest
-	if err := ctx.ShouldBindJSON(&input); err != nil {
-		utils.ErrorResponse(ctx, 400, "Dữ liệu không hợp lệ", err.Error())
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid input data", err)
 		return
 	}
 
-	resp, err := ah.service.Register(&input) // Truyền pointer struct
+	resp, err := ah.service.Register(&input)
 	if err != nil {
-		utils.ErrorResponse(ctx, 400, "Đăng ký thất bại", err.Error())
+		utils.HandleServiceError(c, err) // Tự trả về 409 nếu trùng email (nếu service báo lỗi duplicate)
 		return
 	}
 
-	utils.SuccessResponse(ctx, 201, "Đăng ký thành công", resp)
+	utils.SuccessResponse(c, http.StatusCreated, "Register successful", resp)
+}
+
+func (ah *AuthHandler) Logout(c *gin.Context) {
+	// Logout thường xử lý ở client (xóa token), server chỉ cần trả về OK
+	utils.SuccessResponse(c, http.StatusOK, "Logout successful", nil)
 }

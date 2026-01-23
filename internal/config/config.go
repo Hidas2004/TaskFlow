@@ -22,6 +22,7 @@ type Config struct {
 	JWTExpireHours int
 	UploadPath     string
 	MaxUploadSize  int64
+	ClientOrigin   string //Chứa danh sách domain được phép gọi API
 }
 
 // LoadConfig đọc file .env và nạp vào struct Config
@@ -45,6 +46,8 @@ func LoadConfig() *Config {
 		JWTExpireHours: getEnvAsInt("JWT_EXPIRE_HOURS", 72), // Chuyển đổi string sang int
 		UploadPath:     getEnv("UPLOAD_PATH", "./uploads"),
 		MaxUploadSize:  getEnvAsInt64("MAX_UPLOAD_SIZE", 10485760), // Chuyển đổi sang int64
+		// Mặc định là localhost:3000 (React/Vue thường chạy port này)
+		ClientOrigin: getEnv("CLIENT_ORIGIN", "http://localhost:3000"),
 	}
 }
 

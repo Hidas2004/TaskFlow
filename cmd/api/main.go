@@ -5,10 +5,12 @@ import (
 
 	"github.com/Hidas2004/TaskFlow/internal/config"
 	"github.com/Hidas2004/TaskFlow/internal/handlers/v1handler"
+	"github.com/Hidas2004/TaskFlow/internal/middlewares"
 	"github.com/Hidas2004/TaskFlow/internal/models"
 	"github.com/Hidas2004/TaskFlow/internal/repositories"
 	"github.com/Hidas2004/TaskFlow/internal/routes/v1routes"
 	"github.com/Hidas2004/TaskFlow/internal/services/v1services"
+	"github.com/Hidas2004/TaskFlow/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +22,8 @@ func main() {
 		log.Fatalf("❌ Lỗi kết nối: %v", err)
 	}
 
+	utils.RegisterCustomValidators()
+
 	// 2. Migration
 	db.AutoMigrate(
 		&models.User{}, &models.Team{}, &models.TeamMember{},
@@ -28,6 +32,8 @@ func main() {
 
 	// 3. Khởi tạo Router
 	router := gin.Default()
+
+	router.Use(middlewares.CorsMiddleware(cfg))
 	router.Static("/uploads", "./uploads")
 
 	// 4. Khởi tạo Layers (Repo -> Service -> Handler)
@@ -67,5 +73,6 @@ func main() {
 
 	// 6. Chạy Server
 	log.Printf("🚀 Server đang chạy tại cổng: %s", cfg.ServerPort)
+	log.Printf("🌍 Allowed Origins: %s", cfg.ClientOrigin)
 	router.Run(":" + cfg.ServerPort)
 }

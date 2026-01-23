@@ -1,6 +1,7 @@
 package v1handler
 
 import (
+	"errors" // <--- BẮT BUỘC PHẢI CÓ ĐỂ DÙNG errors.New()
 	"net/http"
 
 	"github.com/Hidas2004/TaskFlow/internal/services/v1services"
@@ -19,31 +20,37 @@ func NewAttachmentHandler(service v1services.AttachmentService) *AttachmentHandl
 
 // POST /api/v1/tasks/:taskId/attachments
 func (ah *AttachmentHandler) Upload(c *gin.Context) {
-	//1 lấy TaskID từ URL
+	// 1. Validate ID
 	taskIDStr := c.Param("taskId")
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid Task ID", err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid Task ID", err)
 		return
 	}
-	// 2. Lấy UserID từ Token (Middleware đã gán vào Context)
+
+	// 2. Validate User (Lấy từ Middleware)
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "User ID not found")
+
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", errors.New("user ID not found in context"))
 		return
 	}
 	userID := userIDInterface.(uuid.UUID)
-	//3 lấy file từ form-date
+
+	// 3. Lấy file
 	file, err := c.FormFile("file")
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "File is required", err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "File is required", err)
 		return
 	}
+
+	// 4. Gọi Service
 	attachment, err := ah.service.UploadAttachment(taskID, userID, file)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Upload failed", err.Error())
+		utils.HandleServiceError(c, err)
 		return
 	}
+
 	utils.SuccessResponse(c, http.StatusCreated, "File uploaded successfully", attachment)
 }
 
@@ -52,17 +59,17 @@ func (h *AttachmentHandler) GetByTask(c *gin.Context) {
 	taskIDStr := c.Param("taskId")
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid Task ID", err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid Task ID", err)
 		return
 	}
 
 	attachments, err := h.service.GetAttachmentsByTaskID(taskID)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to fetch attachments", err.Error())
+		utils.HandleServiceError(c, err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "Success", attachments)
+	utils.SuccessResponse(c, http.StatusOK, "Get attachments success", attachments)
 }
 
 // DELETE /api/v1/attachments/:id
@@ -70,17 +77,16 @@ func (h *AttachmentHandler) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	attachmentID, err := uuid.Parse(idStr)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid Attachment ID", err.Error())
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid Attachment ID", err)
 		return
 	}
 
-	// Lấy UserID để check quyền sở hữu
 	userIDInterface, _ := c.Get("userID")
 	userID := userIDInterface.(uuid.UUID)
 
 	err = h.service.DeleteAttachment(attachmentID, userID)
 	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Failed to delete attachment", err.Error())
+		utils.HandleServiceError(c, err)
 		return
 	}
 
