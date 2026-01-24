@@ -1,7 +1,7 @@
 package v1handler
 
 import (
-	"errors" // <--- BẮT BUỘC PHẢI CÓ ĐỂ DÙNG errors.New()
+	"errors"
 	"net/http"
 
 	"github.com/Hidas2004/TaskFlow/internal/services/v1services"
@@ -18,10 +18,11 @@ func NewAttachmentHandler(service v1services.AttachmentService) *AttachmentHandl
 	return &AttachmentHandler{service: service}
 }
 
-// POST /api/v1/tasks/:taskId/attachments
+// POST /api/v1/tasks/:id/attachments
 func (ah *AttachmentHandler) Upload(c *gin.Context) {
 	// 1. Validate ID
-	taskIDStr := c.Param("taskId")
+	// ✅ ĐÃ SỬA: Đổi "taskId" thành "id" để khớp với route RegisterAttachmentRoutes
+	taskIDStr := c.Param("id")
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid Task ID", err)
@@ -31,7 +32,6 @@ func (ah *AttachmentHandler) Upload(c *gin.Context) {
 	// 2. Validate User (Lấy từ Middleware)
 	userIDInterface, exists := c.Get("userID")
 	if !exists {
-
 		utils.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", errors.New("user ID not found in context"))
 		return
 	}
@@ -54,9 +54,10 @@ func (ah *AttachmentHandler) Upload(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusCreated, "File uploaded successfully", attachment)
 }
 
-// GET /api/v1/tasks/:taskId/attachments
+// GET /api/v1/tasks/:id/attachments
 func (h *AttachmentHandler) GetByTask(c *gin.Context) {
-	taskIDStr := c.Param("taskId")
+	// ✅ ĐÃ SỬA: Đổi "taskId" thành "id"
+	taskIDStr := c.Param("id")
 	taskID, err := uuid.Parse(taskIDStr)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid Task ID", err)
@@ -74,6 +75,7 @@ func (h *AttachmentHandler) GetByTask(c *gin.Context) {
 
 // DELETE /api/v1/attachments/:id
 func (h *AttachmentHandler) Delete(c *gin.Context) {
+	// Route delete là /attachments/:id nên chỗ này dùng "id" là đúng rồi
 	idStr := c.Param("id")
 	attachmentID, err := uuid.Parse(idStr)
 	if err != nil {

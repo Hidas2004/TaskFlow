@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  taskflow_backend:
+    build: .
+    ports:
+      - "8081:8080"
+    depends_on:
+      - taskflow_postgres
+    # 👇 THÊM ĐOẠN NÀY ĐỂ ÉP DOCKER ĐỌC FILE .ENV
+    env_file:
+      - .env
+    # 👇 THÊM ĐOẠN NÀY ĐỂ GHI ĐÈ CẤU HÌNH DB CHO ĐÚNG MẠNG DOCKER
+    environment:
+      - DB_HOST=taskflow_postgres  # Phải trỏ tên service DB, không dùng localhost
+      - DB_USER=postgres
+      - DB_PASSWORD=123456
+      - DB_NAME=taskflow_db
+      - JWT_SECRET=secret_key_cua_ban_123 # Ép cứng secret key để không bị lệch
+
+  taskflow_postgres:
+    image: postgres:16-alpine
+    container_name: taskflow_postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=taskflow_db
+    volumes:
+      - taskflow_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  taskflow_postgres_data:

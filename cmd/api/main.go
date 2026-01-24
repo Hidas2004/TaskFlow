@@ -34,6 +34,7 @@ func main() {
 	router := gin.Default()
 
 	router.Use(middlewares.CorsMiddleware(cfg))
+	router.Use(middlewares.RateLimitMiddleware(cfg))
 	router.Static("/uploads", "./uploads")
 
 	// 4. Khởi tạo Layers (Repo -> Service -> Handler)

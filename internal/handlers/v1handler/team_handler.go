@@ -20,20 +20,17 @@ func NewTeamHandler(service v1services.TeamService) *TeamHandler {
 
 // Hàm này giúp lấy UserID từ context một cách an toàn
 func getUserIDFromContext(c *gin.Context) (uuid.UUID, error) {
-	// 1. Lấy value theo key "userID" (phải khớp y chang Middleware)
+	// 1. Lấy value theo key "userID"
 	idInterface, exists := c.Get("userID")
 	if !exists {
 		return uuid.Nil, errors.New("không tìm thấy user id trong context")
 	}
-	// 2. Ép kiểu về string trước (vì JWT lưu ID là string)
-	idStr, ok := idInterface.(string)
+
+	// 2. Ép kiểu trực tiếp sang uuid.UUID (Thay vì ép sang string như cũ)
+	// Lý do: Bên Middleware bạn đã parse sang UUID rồi mới Set vào context.
+	userID, ok := idInterface.(uuid.UUID)
 	if !ok {
-		return uuid.Nil, errors.New("kiểu dữ liệu user id không hợp lệ")
-	}
-	// 3. Parse từ String sang UUID
-	userID, err := uuid.Parse(idStr)
-	if err != nil {
-		return uuid.Nil, errors.New("format user id không đúng chuẩn uuid")
+		return uuid.Nil, errors.New("kiểu dữ liệu user id trong context không phải là uuid")
 	}
 
 	return userID, nil

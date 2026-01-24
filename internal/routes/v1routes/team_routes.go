@@ -3,15 +3,14 @@ package v1routes
 import (
 	"github.com/Hidas2004/TaskFlow/internal/config"
 	"github.com/Hidas2004/TaskFlow/internal/handlers/v1handler"
-	"github.com/Hidas2004/TaskFlow/internal/middlewares"
+
+	// "github.com/Hidas2004/TaskFlow/internal/middlewares" // <-- Có thể bỏ import này luôn nếu không dùng nữa
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterTeamRoutes(router *gin.RouterGroup, cfg *config.Config, teamHandler *v1handler.TeamHandler) {
 
 	teams := router.Group("/teams")
-
-	teams.Use(middlewares.AuthMiddleware(cfg.JWTSecret))
 
 	{
 		teams.POST("", teamHandler.Create)

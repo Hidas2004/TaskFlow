@@ -10,19 +10,20 @@ import (
 
 // Config chứa toàn bộ biến môi trường của dự án
 type Config struct {
-	ServerPort     string
-	GinMode        string
-	DBHost         string
-	DBPort         string
-	DBUser         string
-	DBPassword     string
-	DBName         string
-	DBSSLMode      string
-	JWTSecret      string
-	JWTExpireHours int
-	UploadPath     string
-	MaxUploadSize  int64
-	ClientOrigin   string //Chứa danh sách domain được phép gọi API
+	ServerPort        string
+	GinMode           string
+	DBHost            string
+	DBPort            string
+	DBUser            string
+	DBPassword        string
+	DBName            string
+	DBSSLMode         string
+	JWTSecret         string
+	JWTExpireHours    int
+	UploadPath        string
+	MaxUploadSize     int64
+	ClientOrigin      string //Chứa danh sách domain được phép gọi API
+	RateLimitRequests int
 }
 
 // LoadConfig đọc file .env và nạp vào struct Config
@@ -47,7 +48,8 @@ func LoadConfig() *Config {
 		UploadPath:     getEnv("UPLOAD_PATH", "./uploads"),
 		MaxUploadSize:  getEnvAsInt64("MAX_UPLOAD_SIZE", 10485760), // Chuyển đổi sang int64
 		// Mặc định là localhost:3000 (React/Vue thường chạy port này)
-		ClientOrigin: getEnv("CLIENT_ORIGIN", "http://localhost:3000"),
+		ClientOrigin:      getEnv("CLIENT_ORIGIN", "http://localhost:3000"),
+		RateLimitRequests: getEnvAsInt("RATE_LIMIT_REQUESTS", 100),
 	}
 }
 
